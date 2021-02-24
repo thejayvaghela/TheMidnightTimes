@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}
+    The Midnight Times | Search
+{% endblock %}
+
+{% block body_tag %}
+    <body style="height:700px; font-family: 'Bookman Old Style';">
+{% endblock %}
+
+{% block refresh %}
+    <form class="form-inline" method="POST" action="/search/">
+        {% csrf_token %}
+        <input class="form-control mr-sm-2" type="text" name="search" value="{{ phrase }}" placeholder="Search for News" style="display:none;">
+        <button type="submit" class="btn btn-secondary" style="border: 0; padding-top:7px;">Refresh</button>&nbsp;&nbsp;
+    </form>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid" style="margin-top:80px">
+        <p style="padding-left: 55px;">Search Results for: "{{ phrase }}" </p>
+        <div class="card-deck">
+            {% for i in searched_results.articles %}
+                <div class="card-rows" style="padding-left: 55px; padding-bottom: 50px;">
+                    <div class="card" style="width:400px;height:500px">
+                        <script>
+                            var article={
+                                '{{phrase}}' : '{{ i }}'
+                            }
+                            function add_recents(article){
+                                if (localStorage.getItem("recent_searches") == null){
+                                    localStorage.setItem("recent_searches",'[]');
+                                    console.log(localStorage.getItem("recent_searches"));
+                                }
+                                else{
+                                    var recent_searches = JSON.parse(localStorage.getItem("recent_searches"));
+                                    recent_searches.push(article);
+                                    localStorage.setItem("recent_searches",JSON.stringify(recent_searches));
+                                    console.log(localStorage.getItem("recent_searches"));
+                                }
+                            }
+                            add_recents(article);
+                        </script>
+                        {% if i.urlToImage %}
+                            <img class="card-img-top" src="{{ i.urlToImage }}" alt="Card image" style="width:100%;height:50%;">
+                        {% else %}
+                            <img class="card-img-top" src="/media/no_image_available.jpeg" alt="Card image" style="width:100%;height:50%;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title" alt="{{ i.title }}">{{ i.title | truncatechars:110 }}</h5>
+                            <br/>
+                            {% if i.author %}
+                                <p class="card-text" style="float: left;">{{ i.author }}</p>
+                            {% endif %}
+                            {% if i.source.name %}
+                                <h6 class="card-title" alt="{{ i.title }}" style="float: right;">{{ i.source.name }}</h6>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer position-absolute bg-info fixed-bottom" style="border: 0;">
+                            <a href="{{ i.url }}" target="_blank" class="btn btn-info stretched-link">More</a>
+                            <p class="card-text" style="float: right; padding-top: 9px;">{{ i.publishedAt }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
